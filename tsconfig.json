@@ -3,6 +3,8 @@
   "compilerOptions": {
     "moduleResolution": "nodenext",
     "module": "nodenext",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "target": "esnext",
     "types": [],
     "sourceMap": true,
