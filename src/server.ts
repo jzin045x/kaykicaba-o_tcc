@@ -11,6 +11,57 @@ app.use(express.json());
 app.use(cors());
 app.use(express.json())
 
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
+
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT CPF, NOME, `EMAIL` as email_banco, SENHA FROM `cadastro` WHERE `EMAIL` = ?',
+      [email]
+    ) as any[];
+
+    if (!rows || rows.length === 0) {
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
+    const usuario = rows[0];
+
+    if (usuario.SENHA !== senha) {
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
+    const token = 'tk_' + Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+
+    await pool.query(
+      'UPDATE `cadastro` SET TOKEN = ? WHERE CPF = ?',
+      [token, usuario.CPF]
+    );
+
+    return res.status(200).json({
+      mensagem: 'Login realizado com sucesso!',
+      token: token,
+      usuario: {
+        cpf: usuario.CPF,
+        nome: usuario.NOME,
+        email: usuario.email_banco
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro no login:', error);
+    return res.status(500).json({ error: 'Erro no servidor ao tentar logar.' });
+  }
+});
+
+
+
+
+
+
 // ================= ROTA PARA CADASTRAR USUÁRIO =================
 app.post('/usuarios', async (req, res) => {
   const { nome, email, senha, telefone, cpf } = req.body;
