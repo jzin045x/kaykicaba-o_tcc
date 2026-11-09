@@ -13,10 +13,10 @@ app.use(express.json())
 
 // ================= ROTA PARA CADASTRAR USUÁRIO =================
 app.post('/usuarios', async (req, res) => {
-  const { nome, email, senha, telefone } = req.body;
+  const { nome, email, senha, telefone, cpf } = req.body;
 
   // 1. Validação básica de entrada
-  if (!nome || !email || !senha || !telefone) {
+  if (!nome || !email || !senha || !telefone ||cpf) {
     return res.status(400).json({ error: 'Nome, email e senha são obrigatórios.' });
   }
 
@@ -25,6 +25,7 @@ app.post('/usuarios', async (req, res) => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS \`cadastro\` (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        CPF VARCHAR(255) NOT NULL,
         NOME VARCHAR(255) NOT NULL,
         EMAIL VARCHAR(255) NOT NULL UNIQUE,
         Senha VARCHAR(255) NOT NULL,
@@ -52,8 +53,8 @@ if (cpfExistente.length > 0) {
   return res.status(409).json({ error: 'Este CPF já está cadastrado.' });
 }
     // 5. Salva o usuário no banco
-    const queryInsercao = 'INSERT INTO `cadastro` (NOME, EMAIL, Senha , Telefone) VALUES (?, ?, ?, ?)';
-    const [result]: any = await pool.query(queryInsercao, [nome, email, senha, telefone]);
+    const queryInsercao = 'INSERT INTO `cadastro` (NOME, EMAIL, Senha , Telefone, CPF) VALUES (?, ?, ?, ?, ?)';
+    const [result]: any = await pool.query(queryInsercao, [nome, email, senha, telefone, cpf]);
 
     // Retorna 201 Created sem expor a senha
     res.status(201).json({
